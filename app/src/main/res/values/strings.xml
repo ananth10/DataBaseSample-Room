@@ -1,0 +1,24 @@
+<resources>
+    <string name="app_name">DataBaseSample-Room</string>
+
+    <!--Titles-->
+    <string name="contact_list">Contact List</string>
+    <string name="contact_create">Create Contact</string>
+    <string name="contact_edit">Edit Contact</string>
+    <string name="contact_detail">Contact details</string>
+
+    <!--create contact-->
+    <string name="name">Name</string>
+    <string name="email">Email</string>
+    <string name="phone">Phone</string>
+    <string name="location">Location</string>
+    <string name="create">Create</string>
+    <string name="deleteContact">Are you sure, you want to delete it.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
+    <string-array name="items">
+        <item>Take a new picture</item>
+        <item>From gallery</item>
+    </string-array>
+</resources>
