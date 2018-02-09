@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -21,20 +22,18 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ananth.databasesample.R;
+import com.ananth.databasesample.databinding.ActivityCreateContactBinding;
 import com.ananth.databasesample.model.ContactModel;
+import com.ananth.databasesample.model.CreateContactModel;
 import com.ananth.databasesample.utils.Utils;
 import com.ananth.databasesample.viewmodel.AddContactViewModel;
+import com.squareup.picasso.Picasso;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -43,18 +42,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.concurrent.ExecutionException;
 
-public class CreateContact extends AppCompatActivity {
+public class CreateContact extends AppCompatActivity implements CreateContactClickHandler{
 
     private static final int REQUEST_CAMERA_PERMISSION = 101;
     private static final int REQUEST_WRITE_PERMISSION = 102;
     private static final int REQUEST_READ_PERMISSION = 103;
-    private Toolbar toolbar;
-    private EditText mName;
-    private EditText mEmail;
-    private EditText mPhone;
-    private EditText mLocation;
-    private Button mCreate;
-    private ImageView mImage;
     private String mSelectedFilePath = "";
     private File file;
     byte[] photo = null;
@@ -65,26 +57,21 @@ public class CreateContact extends AppCompatActivity {
     private String mLocationVal = "";
     private String mPhoneVal = "";
     private String mImageUri = "";
-    private TextView mHeader;
     private AddContactViewModel viewModel;
+    ActivityCreateContactBinding binding;
+    CreateContactModel contactModel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_contact);
-        mHeader = (TextView) findViewById(R.id.header_title);
-        mName = (EditText) findViewById(R.id.name);
-        mEmail = (EditText) findViewById(R.id.email);
-        mPhone = (EditText) findViewById(R.id.phone);
-        mCreate = (Button) findViewById(R.id.create_btn);
-        mLocation = (EditText) findViewById(R.id.location);
-        mImage = (ImageView) findViewById(R.id.profile);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        binding= DataBindingUtil.setContentView(this,R.layout.activity_create_contact);
+
+        setSupportActionBar(binding.toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setTitle("");
 
         viewModel = ViewModelProviders.of(this).get(AddContactViewModel.class);
+
         if (getIntent() != null) {
             mType = getIntent().getStringExtra("type");
             mNameVal = getIntent().getStringExtra("name");
@@ -94,41 +81,21 @@ public class CreateContact extends AppCompatActivity {
             if (!TextUtils.isEmpty(getIntent().getStringExtra("image"))) {
                 mImageUri = getIntent().getStringExtra("image");
             }
+            contactModel=new CreateContactModel(mNameVal,mEmailVal,mPhoneVal,mLocationVal,mImageUri);
         }
-
+        binding.setContactModel(contactModel);
+        binding.setCreateClick(this);
         if (mType.equals("edit")) {
-            mName.setText(mNameVal);
-            mEmail.setText(mEmailVal);
-            mPhone.setText(mPhoneVal);
-            mLocation.setText(mLocationVal);
-            mImage.setImageURI(Uri.parse(mImageUri));
             mSelectedFilePath = mImageUri;
-            mCreate.setText("Update");
-            mHeader.setText("Edit Contact");
-            mPhone.setEnabled(false);
+            contactModel.setButtonText(getString(R.string.buttonUpdateText));
+            contactModel.setHeaderText(getString(R.string.contact_edit));
+            contactModel.setPhoneEnabled(false);
         } else {
-            mCreate.setText("Create");
-            mHeader.setText("Create Contact");
+            contactModel.setButtonText(getString(R.string.buttonCreateText));
+            contactModel.setHeaderText(getString(R.string.contact_create));
+            contactModel.setPhoneEnabled(true);
         }
-        mCreate.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                System.out.println("type:" + mType);
-                if (mType.equals("edit")) {
-                    insertContactandUpdateContact(mType);
-                } else {
-                    insertContactandUpdateContact(mType);
-                }
-            }
-        });
 
-
-        mImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                takeImage();
-            }
-        });
 
     }
 
@@ -142,20 +109,18 @@ public class CreateContact extends AppCompatActivity {
         return true;
     }
 
-    private void insertContactandUpdateContact(String type) {
-        if (!TextUtils.isEmpty(mName.getText().toString().trim())) {
-            if (!TextUtils.isEmpty(mEmail.getText().toString().trim())) {
-                if (!TextUtils.isEmpty(mPhone.getText().toString().trim())) {
-                    if (!TextUtils.isEmpty(mLocation.getText().toString().trim())) {
-                        System.out.println("type:" + type);
+    private void insertContactandUpdateContact(String type,String name,String email,String phone,String location) {
+        if (!TextUtils.isEmpty(name.trim())) {
+            if (!TextUtils.isEmpty(email.trim())) {
+                if (!TextUtils.isEmpty(phone.trim())) {
+                    if (!TextUtils.isEmpty(location.trim())) {
                         if (type.equals("edit")) {
-                            viewModel.updateContact(new ContactModel(mName.getText().toString().trim(), mEmail.getText().toString().trim(), mPhone.getText().toString().trim(), mLocation.getText().toString().trim(), mSelectedFilePath.toString()));
+                            viewModel.updateContact(new ContactModel(name.trim(), email.trim(),phone.trim(),location.trim(), mSelectedFilePath.toString()));
                             finish();
                         } else {
-                            System.out.println("addContact:" + "activity");
                             try {
-                                if (!viewModel.isContactExist(mPhone.getText().toString().trim())) {
-                                    viewModel.addContact(new ContactModel(mName.getText().toString().trim(), mEmail.getText().toString().trim(), mPhone.getText().toString().trim(), mLocation.getText().toString().trim(), mSelectedFilePath.toString()));
+                                if (!viewModel.isContactExist(phone.trim())) {
+                                    viewModel.addContact(new ContactModel(name.trim(), email.trim(),phone.trim(), location.trim(), mSelectedFilePath.toString()));
                                     finish();
                                 } else {
                                     Toast.makeText(getApplicationContext(), "Contact already exist!",
@@ -258,23 +223,15 @@ public class CreateContact extends AppCompatActivity {
                                 new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                                 REQUEST_WRITE_PERMISSION);
                     } else {
-                        System.out.println("data.getData:" + data.getData());
                         Uri selectedImageUri = data.getData();
-                        System.out.println("19 image uri :" + selectedImageUri);
                         if (Build.VERSION.SDK_INT >= 19) {
-                            System.out.println("greater 19:" + "kitkat");
 //						mSelectedFilePath = getRealPathFromURI_API19(
 //								getApplicationContext(), selectedImageUri);
-                            System.out.println("greater 19 image uri :" + selectedImageUri);
 //                        mSelectedFilePath = getPathOfImage(selectedImageUri);
-
                             mSelectedFilePath = getImagePath(selectedImageUri);
-                            System.out.println("mSelectedFissslssePath res" + mSelectedFilePath);
                         } else {
-                            System.out.println("greater 19:" + "not kitkat");
                             mSelectedFilePath = getPathOfImage(selectedImageUri);
 //                            mImage.setImageURI(selectedImageUri);
-                            System.out.println("mSelectedFissslePath res" + mSelectedFilePath);
                         }
                         new imageRotateAsync().execute();
                     }
@@ -356,6 +313,21 @@ public class CreateContact extends AppCompatActivity {
         return filePath;
     }
 
+    @Override
+    public void onCreateClick(String email, String name, String phone, String location) {
+        System.out.println("email:" + email);
+        if (mType.equals("edit")) {
+            insertContactandUpdateContact(mType,name,email,phone,location);
+        } else {
+            insertContactandUpdateContact(mType,name,email,phone,location);
+        }
+    }
+
+    @Override
+    public void onProfileImageClick() {
+        takeImage();
+    }
+
     private class imageRotateAsync extends AsyncTask<Void, Void, Integer> {
 
         private boolean mFlag;
@@ -381,7 +353,8 @@ public class CreateContact extends AppCompatActivity {
             // TODO Auto-generated method stub
             super.onPostExecute(result);
             if (result == 0) {
-                mImage.setImageURI(Uri.parse(mSelectedFilePath.toString()));
+                File file = new File(mSelectedFilePath.toString());
+                Picasso.with(binding.profile.getContext()).load(file).into(binding.profile);
 
             }
         }

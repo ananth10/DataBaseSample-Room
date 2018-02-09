@@ -16,6 +16,8 @@
     <string name="deleteContact">Are you sure, you want to delete it.</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="buttonUpdateText">Update</string>
+    <string name="buttonCreateText">Create</string>
 
     <string-array name="items">
         <item>Take a new picture</item>

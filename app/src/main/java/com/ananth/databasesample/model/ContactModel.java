@@ -2,6 +2,8 @@ package com.ananth.databasesample.model;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
+import android.databinding.BindingAdapter;
+import android.net.Uri;
 
 /**
  * Created by Babu on 10/4/2017.
@@ -17,6 +19,7 @@ public class ContactModel {
     private String mPhone;
     private String mLocation;
     private String mImage;
+
 
     public ContactModel(String name, String email, String phone, String location, String image)
     {
@@ -42,7 +45,6 @@ public class ContactModel {
     public String getLocation() {
         return mLocation;
     }
-
     public String getImage() {
         return mImage;
     }

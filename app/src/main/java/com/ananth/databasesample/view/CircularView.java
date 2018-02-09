@@ -3,6 +3,7 @@ package com.ananth.databasesample.view;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.databinding.BindingAdapter;
 import android.graphics.Bitmap;
 import android.graphics.BitmapShader;
 import android.graphics.Canvas;
@@ -16,10 +17,14 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.widget.ImageView;
 
 import com.ananth.databasesample.R;
+import com.squareup.picasso.Picasso;
+
+import java.io.File;
 
 
 public class CircularView extends ImageView {
@@ -88,6 +93,14 @@ public class CircularView extends ImageView {
         }
     }
 
+    @BindingAdapter({"bind:ImageUrl"})
+    public static void loadImage(ImageView imageView, String url) {
+        if(!TextUtils.isEmpty(url)) {
+            File file = new File(url);
+            Picasso.with(imageView.getContext()).load(file).into(imageView);
+
+        }
+    }
     @Override
     public ScaleType getScaleType() {
         return SCALE_TYPE;
